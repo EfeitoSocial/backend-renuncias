@@ -87,6 +87,39 @@ const fetchInBatches = async (params, totalPages, batchSize) => {
 //   }
 // }
 
+// export default async function handler(req, res) {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+//   if (req.method === "OPTIONS") return res.status(200).end();
+
+//   const BASEURL = "https://apiefeito-renuncia-3ldh3.ondigitalocean.app/renuncias";
+
+//   // Monta os filtros dinâmicos recebidos
+//   const searchParams = new URLSearchParams();
+//   const filtros = ["cnpj", "uf", "ano", "descricaoBeneficioFiscal", "page", "limit", "tributo", "municipio"];
+//   for (const filtro of filtros) {
+//     if (req.query[filtro]) searchParams.append(filtro, req.query[filtro]);
+//   }
+//   // Se não enviar limit, seta 100 como padrão
+//   if (!req.query.limit) searchParams.append("limit", 100);
+
+//   const url = `${BASEURL}?${searchParams.toString()}`;
+
+//   try {
+//     const response = await fetch(url);
+//     if (!response.ok) {
+//       const msg = await response.text();
+//       return res.status(response.status).json({ error: msg });
+//     }
+//     const data = await response.json();
+//     return res.status(200).json({ resultados: data });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message });
+//   }
+// }
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
@@ -95,28 +128,42 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const BASEURL = "https://apiefeito-renuncia-3ldh3.ondigitalocean.app/renuncias";
-
-  // Monta os filtros dinâmicos recebidos
+  const filtros = ["cnpj", "uf", "ano", "descricaoBeneficioFiscal"];
   const searchParams = new URLSearchParams();
-  const filtros = ["cnpj", "uf", "ano", "descricaoBeneficioFiscal", "page", "limit", "tributo", "municipio"];
+
   for (const filtro of filtros) {
     if (req.query[filtro]) searchParams.append(filtro, req.query[filtro]);
   }
-  // Se não enviar limit, seta 100 como padrão
-  if (!req.query.limit) searchParams.append("limit", 100);
 
-  const url = `${BASEURL}?${searchParams.toString()}`;
+  const limit = 500; // Defina por página conforme sua API permite
+  let page = 1;
+  let totalRegistros = [];
+  let registros;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      const msg = await response.text();
-      return res.status(response.status).json({ error: msg });
-    }
-    const data = await response.json();
-    return res.status(200).json({ resultados: data });
+    do {
+      searchParams.set("limit", limit);
+      searchParams.set("page", page);
+      const url = `${BASEURL}?${searchParams.toString()}`;
+      const response = await fetch(url);
+      if (!response.ok) break;
+
+      registros = await response.json();
+
+      if (Array.isArray(registros)) {
+        totalRegistros = totalRegistros.concat(registros);
+      } else if (registros.resultados) {
+        totalRegistros = totalRegistros.concat(registros.resultados);
+      }
+      page++;
+      // Para evitar explodir o tempo
+      if (page > 30) break; // Exemplo: máximo 30 páginas == 15.000 registros
+    } while (registros && registros.length === limit);
+
+    res.status(200).json({ resultados: totalRegistros });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 }
+
 
