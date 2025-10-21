@@ -201,7 +201,7 @@ export default async function handler(req, res) {
 
     // Montagem dos parâmetros
     const params = new URLSearchParams();
-    if (uf) params.append("nomeSiglaUF", uf);
+    if (uf) params.append("uf", uf);
     if (cnpj) params.append("cnpj", cnpj);
 
     const url = `${BASE_URL}?${params.toString()}`;
