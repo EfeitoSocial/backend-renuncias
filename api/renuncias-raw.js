@@ -145,9 +145,20 @@ export default async function handler(req, res) {
 
     let dadosFiltrados = dadosPrimarios;
     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
+    // if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
+    //   dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
+    // }
     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
-      dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
-    }
+  let listaBeneficios = descricaoBeneficioFiscal;
+  if (typeof listaBeneficios === "string") {
+    // Suporta tanto envio separado por vírgula quanto array
+    listaBeneficios = listaBeneficios.split(",");
+  }
+  dadosFiltrados = dadosFiltrados.filter(
+    item => listaBeneficios.includes(item.descricaoBeneficioFiscal)
+  );
+}
+
 
     return res.status(200).json({
       resultados: dadosFiltrados,
