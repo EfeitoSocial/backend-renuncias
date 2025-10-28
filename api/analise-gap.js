@@ -1,52 +1,157 @@
-// // Estrutura igual ao anterior para dependências:
-// import fetch from "node-fetch";
-// import NodeCache from "node-cache";
+// // // Estrutura igual ao anterior para dependências:
+// // import fetch from "node-fetch";
+// // import NodeCache from "node-cache";
 
-// const myCache = new NodeCache({ stdTTL: 3600 });
+// // const myCache = new NodeCache({ stdTTL: 3600 });
 
-// const fetchPage = async (params, page) => { /* igual à anterior */ };
-// const fetchInBatches = async (params, totalPages, batchSize) => { /* igual à anterior */ };
+// // const fetchPage = async (params, page) => { /* igual à anterior */ };
+// // const fetchInBatches = async (params, totalPages, batchSize) => { /* igual à anterior */ };
 
-// // A lógica do gap analisando campos por empresa
-// export default async function handler(req, res) {
-//   res.setHeader("Access-Control-Allow-Origin", "https://consulta-beneficios-fiscais.vercel.app");
-//   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+// // // A lógica do gap analisando campos por empresa
+// // export default async function handler(req, res) {
+// //   res.setHeader("Access-Control-Allow-Origin", "https://consulta-beneficios-fiscais.vercel.app");
+// //   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+// //   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   
-//   // Permitir resposta rápida para preflight (OPTIONS)
-//   if (req.method === "OPTIONS") {
-//     res.status(200).end();
-//     return;
-//   }
+// //   // Permitir resposta rápida para preflight (OPTIONS)
+// //   if (req.method === "OPTIONS") {
+// //     res.status(200).end();
+// //     return;
+// //   }
+// //   try {
+// //     const { ano = "todos", uf = "", cnpj = "", descricaoBeneficioFiscal = "todos" } = req.query;
+// //     if (!uf && !cnpj) {
+// //       return res.status(400).json({ message: "Por favor, forneça um filtro primário (Estado ou CNPJ) para iniciar a busca." });
+// //     }
+// //     const primaryFilters = { uf, cnpj };
+// //     const cacheKey = `gap-${JSON.stringify(primaryFilters)}`;
+// //     let dadosPrimarios;
+
+// //     if (myCache.has(cacheKey)) {
+// //       dadosPrimarios = myCache.get(cacheKey);
+// //     } else {
+// //       const paramsApiExterna = {};
+// //       if (uf) paramsApiExterna.nomeSiglaUF = uf;
+// //       if (cnpj) paramsApiExterna.cnpj = cnpj;
+// //       const MAX_PAGES_TO_FETCH = 2000;
+// //       const BATCH_SIZE = 20;
+// //       const allData = await fetchInBatches(paramsApiExterna, MAX_PAGES_TO_FETCH, BATCH_SIZE);
+// //       myCache.set(cacheKey, allData);
+// //       dadosPrimarios = allData;
+// //     }
+
+// //     const dadosRelevantes = dadosPrimarios;
+
+// //     let dadosFiltrados = dadosRelevantes;
+// //     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
+// //     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos")
+// //       dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
+
+// //     const analisePorEmpresa = {};
+// //     dadosFiltrados.forEach(item => {
+// //       const id = item.cnpj;
+// //       if (!analisePorEmpresa[id]) {
+// //         analisePorEmpresa[id] = {
+// //           cnpj: item.cnpj,
+// //           razaoSocial: item.razaoSocial,
+// //           uf: item.uf,
+// //           totalCultura: 0,
+// //           totalEsporte: 0,
+// //           totalInfancia: 0,
+// //           totalIdoso: 0,
+// //         };
+// //       }
+// //       const descricao = item.descricaoBeneficioFiscal?.toLowerCase() || "";
+// //       if (descricao.includes("cultura") || descricao.includes("rouanet") || descricao.includes("audiovisual"))
+// //         analisePorEmpresa[id].totalCultura += item.valorRenunciado;
+// //       else if (descricao.includes("esporte") || descricao.includes("desporto"))
+// //         analisePorEmpresa[id].totalEsporte += item.valorRenunciado;
+// //       else if (descricao.includes("criança") || descricao.includes("adolescente"))
+// //         analisePorEmpresa[id].totalInfancia += item.valorRenunciado;
+// //       else if (descricao.includes("idoso"))
+// //         analisePorEmpresa[id].totalIdoso += item.valorRenunciado;
+// //     });
+
+// //     const resultadosFinais = Object.values(analisePorEmpresa).map(empresa => {
+// //       const baseIrDevido = Math.max(
+// //         empresa.totalCultura / 0.04,
+// //         empresa.totalEsporte / 0.02,
+// //         empresa.totalInfancia / 0.01,
+// //         empresa.totalIdoso / 0.01,
+// //         0
+// //       );
+// //       const potencialCultura = baseIrDevido * 0.04;
+// //       const potencialEsporte = baseIrDevido * 0.02;
+// //       const potencialInfancia = baseIrDevido * 0.01;
+// //       const potencialIdoso = baseIrDevido * 0.01;
+// //       const gapCultura = Math.max(0, potencialCultura - empresa.totalCultura);
+// //       const gapEsporte = Math.max(0, potencialEsporte - empresa.totalEsporte);
+// //       const gapInfancia = Math.max(0, potencialInfancia - empresa.totalInfancia);
+// //       const gapIdoso = Math.max(0, potencialIdoso - empresa.totalIdoso);
+// //       return {
+// //         ...empresa,
+// //         gapTotal: gapCultura + gapEsporte + gapInfancia + gapIdoso
+// //       };
+// //     }).sort((a, b) => b.gapTotal - a.gapTotal);
+
+// //     const numeroDeEmpresas = resultadosFinais.length;
+// //     const valorTotalInvestido = dadosFiltrados.reduce((acc, item) => acc + item.valorRenunciado, 0);
+// //     const gapTotalGeral = resultadosFinais.reduce((acc, item) => acc + item.gapTotal, 0);
+
+// //     res.status(200).json({
+// //       estatisticas: { numeroDeEmpresas, valorTotalInvestido, gapTotalGeral },
+// //       resultados: resultadosFinais,
+// //       anosDisponiveis: [...new Set(dadosRelevantes.map(item => item.ano))].sort((a, b) => b - a),
+// //       beneficiosDisponiveis: [...new Set(dadosRelevantes.map(item => item.descricaoBeneficioFiscal))].sort()
+// //     });
+// //   } catch (error) {
+// //     res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error.message });
+// //   }
+// // }
+
+// // api/analise-gap.js
+// import { fetchDataFromLocalAPI } from "../lib/fetchDataFromLocalAPI.js";
+// import cache from "../lib/cache.js";
+
+// /**
+//  * Handler serverless para /api/analise-gap
+//  */
+// export default async function handler(req, res) {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//   if (req.method === "OPTIONS") return res.status(204).end();
+
 //   try {
-//     const { ano = "todos", uf = "", cnpj = "", descricaoBeneficioFiscal = "todos" } = req.query;
+//     const { ano, uf, cnpj, descricaoBeneficioFiscal } = (req.query || req.url?.includes("?")) ? req.query : req.body || {};
+
 //     if (!uf && !cnpj) {
 //       return res.status(400).json({ message: "Por favor, forneça um filtro primário (Estado ou CNPJ) para iniciar a busca." });
 //     }
-//     const primaryFilters = { uf, cnpj };
-//     const cacheKey = `gap-${JSON.stringify(primaryFilters)}`;
-//     let dadosPrimarios;
 
-//     if (myCache.has(cacheKey)) {
-//       dadosPrimarios = myCache.get(cacheKey);
+//     const primaryFilters = { uf: uf || null, cnpj: cnpj || null };
+//     const cacheKey = `gap-${JSON.stringify(primaryFilters)}`;
+
+//     let dadosPrimarios;
+//     if (cache.has(cacheKey)) {
+//       console.log("[analise-gap] usando cache:", cacheKey);
+//       dadosPrimarios = cache.get(cacheKey);
 //     } else {
-//       const paramsApiExterna = {};
-//       if (uf) paramsApiExterna.nomeSiglaUF = uf;
-//       if (cnpj) paramsApiExterna.cnpj = cnpj;
-//       const MAX_PAGES_TO_FETCH = 2000;
-//       const BATCH_SIZE = 20;
-//       const allData = await fetchInBatches(paramsApiExterna, MAX_PAGES_TO_FETCH, BATCH_SIZE);
-//       myCache.set(cacheKey, allData);
-//       dadosPrimarios = allData;
+//       console.log("[analise-gap] buscando API remota...");
+//       dadosPrimarios = await fetchDataFromLocalAPI({ uf, cnpj });
+//       cache.set(cacheKey, dadosPrimarios);
 //     }
 
-//     const dadosRelevantes = dadosPrimarios;
+//     const anosDisponiveis = [...new Set(dadosPrimarios.map(item => item.ano))].sort((a, b) => b - a);
+//     const beneficiosDisponiveis = [...new Set(dadosPrimarios.map(item => item.descricaoBeneficioFiscal))].sort();
 
-//     let dadosFiltrados = dadosRelevantes;
+//     let dadosFiltrados = dadosPrimarios;
 //     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
-//     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos")
+//     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
 //       dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
+//     }
 
+//     // Lógica de agregação por empresa (mesma do seu index.js)
 //     const analisePorEmpresa = {};
 //     dadosFiltrados.forEach(item => {
 //       const id = item.cnpj;
@@ -55,21 +160,20 @@
 //           cnpj: item.cnpj,
 //           razaoSocial: item.razaoSocial,
 //           uf: item.uf,
-//           totalCultura: 0,
-//           totalEsporte: 0,
-//           totalInfancia: 0,
-//           totalIdoso: 0,
+//           totalCultura: 0, totalEsporte: 0, totalInfancia: 0, totalIdoso: 0,
 //         };
 //       }
-//       const descricao = item.descricaoBeneficioFiscal?.toLowerCase() || "";
-//       if (descricao.includes("cultura") || descricao.includes("rouanet") || descricao.includes("audiovisual"))
-//         analisePorEmpresa[id].totalCultura += item.valorRenunciado;
-//       else if (descricao.includes("esporte") || descricao.includes("desporto"))
-//         analisePorEmpresa[id].totalEsporte += item.valorRenunciado;
-//       else if (descricao.includes("criança") || descricao.includes("adolescente"))
-//         analisePorEmpresa[id].totalInfancia += item.valorRenunciado;
-//       else if (descricao.includes("idoso"))
-//         analisePorEmpresa[id].totalIdoso += item.valorRenunciado;
+
+//       const descricao = (item.descricaoBeneficioFiscal || "").toLowerCase();
+//       if (descricao.includes('cultura') || descricao.includes('rouanet') || descricao.includes('audiovisual')) {
+//         analisePorEmpresa[id].totalCultura += Number(item.valorRenunciado || 0);
+//       } else if (descricao.includes('esporte') || descricao.includes('desporto')) {
+//         analisePorEmpresa[id].totalEsporte += Number(item.valorRenunciado || 0);
+//       } else if (descricao.includes('criança') || descricao.includes('adolescente')) {
+//         analisePorEmpresa[id].totalInfancia += Number(item.valorRenunciado || 0);
+//       } else if (descricao.includes('idoso')) {
+//         analisePorEmpresa[id].totalIdoso += Number(item.valorRenunciado || 0);
+//       }
 //     });
 
 //     const resultadosFinais = Object.values(analisePorEmpresa).map(empresa => {
@@ -88,28 +192,25 @@
 //       const gapEsporte = Math.max(0, potencialEsporte - empresa.totalEsporte);
 //       const gapInfancia = Math.max(0, potencialInfancia - empresa.totalInfancia);
 //       const gapIdoso = Math.max(0, potencialIdoso - empresa.totalIdoso);
-//       return {
-//         ...empresa,
-//         gapTotal: gapCultura + gapEsporte + gapInfancia + gapIdoso
-//       };
+
+//       return { ...empresa, gapTotal: gapCultura + gapEsporte + gapInfancia + gapIdoso };
 //     }).sort((a, b) => b.gapTotal - a.gapTotal);
 
 //     const numeroDeEmpresas = resultadosFinais.length;
-//     const valorTotalInvestido = dadosFiltrados.reduce((acc, item) => acc + item.valorRenunciado, 0);
-//     const gapTotalGeral = resultadosFinais.reduce((acc, item) => acc + item.gapTotal, 0);
+//     const valorTotalInvestido = dadosFiltrados.reduce((acc, item) => acc + Number(item.valorRenunciado || 0), 0);
+//     const gapTotalGeral = resultadosFinais.reduce((acc, item) => acc + Number(item.gapTotal || 0), 0);
 
-//     res.status(200).json({
+//     return res.status(200).json({
 //       estatisticas: { numeroDeEmpresas, valorTotalInvestido, gapTotalGeral },
 //       resultados: resultadosFinais,
-//       anosDisponiveis: [...new Set(dadosRelevantes.map(item => item.ano))].sort((a, b) => b - a),
-//       beneficiosDisponiveis: [...new Set(dadosRelevantes.map(item => item.descricaoBeneficioFiscal))].sort()
+//       anosDisponiveis, beneficiosDisponiveis,
 //     });
 //   } catch (error) {
-//     res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error.message });
+//     console.error("[analise-gap] Erro:", error);
+//     return res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error?.message });
 //   }
 // }
 
-// api/analise-gap.js
 import { fetchDataFromLocalAPI } from "../lib/fetchDataFromLocalAPI.js";
 import cache from "../lib/cache.js";
 
@@ -151,7 +252,6 @@ export default async function handler(req, res) {
       dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
     }
 
-    // Lógica de agregação por empresa (mesma do seu index.js)
     const analisePorEmpresa = {};
     dadosFiltrados.forEach(item => {
       const id = item.cnpj;
@@ -177,23 +277,44 @@ export default async function handler(req, res) {
     });
 
     const resultadosFinais = Object.values(analisePorEmpresa).map(empresa => {
+      // Calcula uma base potencial de imposto para cada tipo de doação.
+      // O limite de 4% para cultura e 2% para esporte se aplica a doações individuais,
+      // mas a Receita Federal os trata como um teto.
+      // A lógica abaixo assume que a maior doação de uma categoria indica a base de cálculo.
+      const baseIrEstimadaCultura = empresa.totalCultura > 0 ? empresa.totalCultura / 0.04 : 0;
+      const baseIrEstimadaEsporte = empresa.totalEsporte > 0 ? empresa.totalEsporte / 0.02 : 0;
+      const baseIrEstimadaInfancia = empresa.totalInfancia > 0 ? empresa.totalInfancia / 0.01 : 0;
+      const baseIrEstimadaIdoso = empresa.totalIdoso > 0 ? empresa.totalIdoso / 0.01 : 0;
+
+      // A base de IRPJ mais conservadora é a maior entre as bases estimadas,
+      // pois uma empresa poderia estar no limite de apenas uma categoria.
       const baseIrDevido = Math.max(
-        empresa.totalCultura / 0.04,
-        empresa.totalEsporte / 0.02,
-        empresa.totalInfancia / 0.01,
-        empresa.totalIdoso / 0.01,
-        0
+        baseIrEstimadaCultura,
+        baseIrEstimadaEsporte,
+        baseIrEstimadaInfancia,
+        baseIrEstimadaIdoso
       );
-      const potencialCultura = baseIrDevido * 0.04;
-      const potencialEsporte = baseIrDevido * 0.02;
-      const potencialInfancia = baseIrDevido * 0.01;
-      const potencialIdoso = baseIrDevido * 0.01;
+
+      // Agora, calculamos o potencial máximo de doação para cada categoria
+      // com base no IRPJ devido e subtraímos o que já foi doado para encontrar o 'gap'.
+      const potencialCultura = Math.min(baseIrDevido * 0.04, empresa.totalCultura + (baseIrDevido * 0.04 - empresa.totalCultura));
+      const potencialEsporte = Math.min(baseIrDevido * 0.02, empresa.totalEsporte + (baseIrDevido * 0.02 - empresa.totalEsporte));
+      const potencialInfancia = Math.min(baseIrDevido * 0.01, empresa.totalInfancia + (baseIrDevido * 0.01 - empresa.totalInfancia));
+      const potencialIdoso = Math.min(baseIrDevido * 0.01, empresa.totalIdoso + (baseIrDevido * 0.01 - empresa.totalIdoso));
+      
       const gapCultura = Math.max(0, potencialCultura - empresa.totalCultura);
       const gapEsporte = Math.max(0, potencialEsporte - empresa.totalEsporte);
       const gapInfancia = Math.max(0, potencialInfancia - empresa.totalInfancia);
       const gapIdoso = Math.max(0, potencialIdoso - empresa.totalIdoso);
 
-      return { ...empresa, gapTotal: gapCultura + gapEsporte + gapInfancia + gapIdoso };
+      return {
+        ...empresa,
+        gapCultura,
+        gapEsporte,
+        gapInfancia,
+        gapIdoso,
+        gapTotal: gapCultura + gapEsporte + gapInfancia + gapIdoso,
+      };
     }).sort((a, b) => b.gapTotal - a.gapTotal);
 
     const numeroDeEmpresas = resultadosFinais.length;
@@ -210,4 +331,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error?.message });
   }
 }
-
