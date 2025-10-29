@@ -104,73 +104,7 @@
 // // }
 // // =========================novo editado =======================
 
-// // api/renuncias-raw.js
-// import { fetchDataFromLocalAPI } from "../lib/fetchDataFromLocalAPI.js";
-// import cache from "../lib/cache.js";
-
-// /**
-//  * Handler serverless para /api/renuncias-raw
-//  * Deploy na Vercel: coloque esse arquivo dentro da pasta api/ (ou ajuste conforme seu framework)
-//  */
-// export default async function handler(req, res) {
-//   // Suporte básico a CORS (se sua front chama direto)
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-//   if (req.method === "OPTIONS") return res.status(204).end();
-
-//   try {
-//     const { ano, uf, cnpj, descricaoBeneficioFiscal } = (req.query || req.url?.includes("?")) ? req.query : req.body || {};
-
-//     if (!uf && !cnpj) {
-//       return res.status(400).json({ message: "Por favor, forneça um filtro primário (uf ou cnpj)." });
-//     }
-
-//     const primaryFilters = { uf: uf || null, cnpj: cnpj || null };
-//     const cacheKey = `raw-${JSON.stringify(primaryFilters)}`;
-
-//     let dadosPrimarios;
-//     if (cache.has(cacheKey)) {
-//       console.log("[renuncias-raw] usando cache:", cacheKey);
-//       dadosPrimarios = cache.get(cacheKey);
-//     } else {
-//       console.log("[renuncias-raw] buscando API remota...");
-//       dadosPrimarios = await fetchDataFromLocalAPI({ uf, cnpj });
-//       cache.set(cacheKey, dadosPrimarios);
-//     }
-
-//     const anosDisponiveis = [...new Set(dadosPrimarios.map(item => item.ano))].sort((a, b) => b - a);
-//     const beneficiosDisponiveis = [...new Set(dadosPrimarios.map(item => item.descricaoBeneficioFiscal))].sort();
-
-//     let dadosFiltrados = dadosPrimarios;
-//     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
-//     // if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
-//     //   dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
-//     // }
-//     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
-//   let listaBeneficios = descricaoBeneficioFiscal;
-//   if (typeof listaBeneficios === "string") {
-//     // Suporta tanto envio separado por vírgula quanto array
-//     listaBeneficios = listaBeneficios.split(",");
-//   }
-//   dadosFiltrados = dadosFiltrados.filter(
-//     item => listaBeneficios.includes(item.descricaoBeneficioFiscal)
-//   );
-// }
-
-
-//     return res.status(200).json({
-//       resultados: dadosFiltrados,
-//       anosDisponiveis,
-//       beneficiosDisponiveis,
-//     });
-//   } catch (error) {
-//     console.error("[renuncias-raw] Erro:", error);
-//     return res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error?.message });
-//   }
-// }
-
+// api/renuncias-raw.js
 import { fetchDataFromLocalAPI } from "../lib/fetchDataFromLocalAPI.js";
 import cache from "../lib/cache.js";
 
@@ -187,16 +121,13 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
 
   try {
-    // Adicione municipio aqui!
-    const { ano, uf, cnpj, descricaoBeneficioFiscal, municipio } = 
-      (req.query || req.url?.includes("?")) ? req.query : req.body || {};
+    const { ano, uf, cnpj, descricaoBeneficioFiscal } = (req.query || req.url?.includes("?")) ? req.query : req.body || {};
 
     if (!uf && !cnpj) {
       return res.status(400).json({ message: "Por favor, forneça um filtro primário (uf ou cnpj)." });
     }
 
-    // Inclua municipio no cache primário se quiser filtrar cache por ele também (opcional)
-    const primaryFilters = { uf: uf || null, cnpj: cnpj || null, municipio: municipio || null };
+    const primaryFilters = { uf: uf || null, cnpj: cnpj || null };
     const cacheKey = `raw-${JSON.stringify(primaryFilters)}`;
 
     let dadosPrimarios;
@@ -205,8 +136,7 @@ export default async function handler(req, res) {
       dadosPrimarios = cache.get(cacheKey);
     } else {
       console.log("[renuncias-raw] buscando API remota...");
-      // Adicione municipio na chamada da API interna, se ela aceita este filtro
-      dadosPrimarios = await fetchDataFromLocalAPI({ uf, cnpj, municipio });
+      dadosPrimarios = await fetchDataFromLocalAPI({ uf, cnpj });
       cache.set(cacheKey, dadosPrimarios);
     }
 
@@ -215,16 +145,20 @@ export default async function handler(req, res) {
 
     let dadosFiltrados = dadosPrimarios;
     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
-    if (municipio) dadosFiltrados = dadosFiltrados.filter(item => item.municipio?.trim().toLowerCase() === municipio.trim().toLowerCase()); // <-- Filtro novo!
+    // if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
+    //   dadosFiltrados = dadosFiltrados.filter(item => item.descricaoBeneficioFiscal === descricaoBeneficioFiscal);
+    // }
     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
-      let listaBeneficios = descricaoBeneficioFiscal;
-      if (typeof listaBeneficios === "string") {
-        listaBeneficios = listaBeneficios.split(",");
-      }
-      dadosFiltrados = dadosFiltrados.filter(
-        item => listaBeneficios.includes(item.descricaoBeneficioFiscal)
-      );
-    }
+  let listaBeneficios = descricaoBeneficioFiscal;
+  if (typeof listaBeneficios === "string") {
+    // Suporta tanto envio separado por vírgula quanto array
+    listaBeneficios = listaBeneficios.split(",");
+  }
+  dadosFiltrados = dadosFiltrados.filter(
+    item => listaBeneficios.includes(item.descricaoBeneficioFiscal)
+  );
+}
+
 
     return res.status(200).json({
       resultados: dadosFiltrados,
@@ -236,3 +170,72 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error?.message });
   }
 }
+
+
+
+// =========================novo editado com municipio=======================
+// import { fetchDataFromLocalAPI } from "../lib/fetchDataFromLocalAPI.js";
+// import cache from "../lib/cache.js";
+
+// /**
+//  * Handler serverless para /api/renuncias-raw
+//  * Deploy na Vercel: coloque esse arquivo dentro da pasta api/ (ou ajuste conforme seu framework)
+//  */
+// export default async function handler(req, res) {
+//   // Suporte básico a CORS (se sua front chama direto)
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+//   if (req.method === "OPTIONS") return res.status(204).end();
+
+//   try {
+//     // Adicione municipio aqui!
+//     const { ano, uf, cnpj, descricaoBeneficioFiscal, municipio } = 
+//       (req.query || req.url?.includes("?")) ? req.query : req.body || {};
+
+//     if (!uf && !cnpj) {
+//       return res.status(400).json({ message: "Por favor, forneça um filtro primário (uf ou cnpj)." });
+//     }
+
+//     // Inclua municipio no cache primário se quiser filtrar cache por ele também (opcional)
+//     const primaryFilters = { uf: uf || null, cnpj: cnpj || null, municipio: municipio || null };
+//     const cacheKey = `raw-${JSON.stringify(primaryFilters)}`;
+
+//     let dadosPrimarios;
+//     if (cache.has(cacheKey)) {
+//       console.log("[renuncias-raw] usando cache:", cacheKey);
+//       dadosPrimarios = cache.get(cacheKey);
+//     } else {
+//       console.log("[renuncias-raw] buscando API remota...");
+//       // Adicione municipio na chamada da API interna, se ela aceita este filtro
+//       dadosPrimarios = await fetchDataFromLocalAPI({ uf, cnpj, municipio });
+//       cache.set(cacheKey, dadosPrimarios);
+//     }
+
+//     const anosDisponiveis = [...new Set(dadosPrimarios.map(item => item.ano))].sort((a, b) => b - a);
+//     const beneficiosDisponiveis = [...new Set(dadosPrimarios.map(item => item.descricaoBeneficioFiscal))].sort();
+
+//     let dadosFiltrados = dadosPrimarios;
+//     if (ano && ano !== "todos") dadosFiltrados = dadosFiltrados.filter(item => item.ano == ano);
+//     if (municipio) dadosFiltrados = dadosFiltrados.filter(item => item.municipio?.trim().toLowerCase() === municipio.trim().toLowerCase()); // <-- Filtro novo!
+//     if (descricaoBeneficioFiscal && descricaoBeneficioFiscal !== "todos") {
+//       let listaBeneficios = descricaoBeneficioFiscal;
+//       if (typeof listaBeneficios === "string") {
+//         listaBeneficios = listaBeneficios.split(",");
+//       }
+//       dadosFiltrados = dadosFiltrados.filter(
+//         item => listaBeneficios.includes(item.descricaoBeneficioFiscal)
+//       );
+//     }
+
+//     return res.status(200).json({
+//       resultados: dadosFiltrados,
+//       anosDisponiveis,
+//       beneficiosDisponiveis,
+//     });
+//   } catch (error) {
+//     console.error("[renuncias-raw] Erro:", error);
+//     return res.status(500).json({ message: "Ocorreu um erro no servidor.", details: error?.message });
+//   }
+// }
