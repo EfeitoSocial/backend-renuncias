@@ -520,7 +520,7 @@ export default async function handler(req, res) {
           totalCultura: 0,
           totalAudiovisual: 0,
           totalEsporte: 0,
-          totalReciclagem: 0,
+          // totalReciclagem: 0,
           totalInfancia: 0,
           totalIdoso: 0,
           totalPronas: 0,
@@ -536,8 +536,8 @@ export default async function handler(req, res) {
         analisePorEmpresa[id].totalCultura += Number(item.valorRenunciado || 0);
       } else if (descricao.includes('esporte') || descricao.includes('desporto')) {
         analisePorEmpresa[id].totalEsporte += Number(item.valorRenunciado || 0);
-      } else if (descricao.includes('reciclagem')) {
-        analisePorEmpresa[id].totalReciclagem += Number(item.valorRenunciado || 0);
+      // } else if (descricao.includes('reciclagem')) {
+      //   analisePorEmpresa[id].totalReciclagem += Number(item.valorRenunciado || 0);
       } else if (descricao.includes('criança') || descricao.includes('adolescente')) {
         analisePorEmpresa[id].totalInfancia += Number(item.valorRenunciado || 0);
       } else if (descricao.includes('idoso')) {
@@ -554,7 +554,7 @@ export default async function handler(req, res) {
       cultura: 0.04,
       audiovisual: 0.03,  // Limita 3% dentro dos 4% cultura
       esporte: 0.02,
-      reciclagem: 0.01,
+      // reciclagem: 0.01,
       infancia: 0.01,
       idoso: 0.01,
       pronas: 0.01,
@@ -566,7 +566,7 @@ export default async function handler(req, res) {
       const estimativas = [
         empresa.totalCultura > 0 ? empresa.totalCultura / limites.cultura : 0,
         empresa.totalEsporte > 0 ? empresa.totalEsporte / limites.esporte : 0,
-        empresa.totalReciclagem > 0 ? empresa.totalReciclagem / limites.reciclagem : 0,
+        // empresa.totalReciclagem > 0 ? empresa.totalReciclagem / limites.reciclagem : 0,
         empresa.totalInfancia > 0 ? empresa.totalInfancia / limites.infancia : 0,
         empresa.totalIdoso > 0 ? empresa.totalIdoso / limites.idoso : 0,
         empresa.totalPronas > 0 ? empresa.totalPronas / limites.pronas : 0,
@@ -578,7 +578,7 @@ export default async function handler(req, res) {
       const potencialCultura = baseIrDevido * limites.cultura;
       const potencialAudiovisual = baseIrDevido * limites.audiovisual;
       const potencialEsporte = baseIrDevido * limites.esporte;
-      const potencialReciclagem = baseIrDevido * limites.reciclagem;
+      // const potencialReciclagem = baseIrDevido * limites.reciclagem;
       const potencialInfancia = baseIrDevido * limites.infancia;
       const potencialIdoso = baseIrDevido * limites.idoso;
       const potencialPronas = baseIrDevido * limites.pronas;
@@ -588,7 +588,7 @@ export default async function handler(req, res) {
       const gapCultura = Math.max(0, potencialCultura - empresa.totalCultura);
       const gapAudiovisual = Math.max(0, potencialAudiovisual - empresa.totalAudiovisual);
       const gapEsporte = Math.max(0, potencialEsporte - empresa.totalEsporte);
-      const gapReciclagem = Math.max(0, potencialReciclagem - empresa.totalReciclagem);
+      // const gapReciclagem = Math.max(0, potencialReciclagem - empresa.totalReciclagem);
       const gapInfancia = Math.max(0, potencialInfancia - empresa.totalInfancia);
       const gapIdoso = Math.max(0, potencialIdoso - empresa.totalIdoso);
       const gapPronas = Math.max(0, potencialPronas - empresa.totalPronas);
@@ -600,7 +600,7 @@ export default async function handler(req, res) {
         potencialCultura,
         potencialAudiovisual,
         potencialEsporte,
-        potencialReciclagem,
+        // potencialReciclagem,
         potencialInfancia,
         potencialIdoso,
         potencialPronas,
@@ -608,12 +608,13 @@ export default async function handler(req, res) {
         gapCultura,
         gapAudiovisual,
         gapEsporte,
-        gapReciclagem,
+        // gapReciclagem,
         gapInfancia,
         gapIdoso,
         gapPronas,
         gapPronon,
-        gapTotal: gapCultura + gapAudiovisual + gapEsporte + gapReciclagem + gapInfancia + gapIdoso + gapPronas + gapPronon
+        // gapTotal: gapCultura + gapAudiovisual + gapEsporte + gapReciclagem + gapInfancia + gapIdoso + gapPronas + gapPronon
+        gapTotal: gapCultura + gapAudiovisual + gapEsporte + gapInfancia + gapIdoso + gapPronas + gapPronon
       };
     }).sort((a, b) => b.gapTotal - a.gapTotal);
 
